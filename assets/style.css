@@ -456,3 +456,9 @@ html.motion .hero h1 .ln{opacity:0}
   /* capas fijas gigantes que en celular casi no se ven pero cuestan mucho al hacer scroll */
   .stage .glow,.stage .stage-bg{display:none}
 }
+
+/* Videos: flechas y contador para ver los que quedan fuera de pantalla */
+.tt-ctrl{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:0 var(--pad);margin:-8px 0 16px}
+.tt-count{margin-right:auto;font-size:12px;text-transform:uppercase;color:var(--fg-70)}
+.tt-rail::after{content:"";flex:0 0 1px}
+@media (max-width:900px){.tt-ctrl{margin-top:0}.tt-btn{width:44px;height:44px}}

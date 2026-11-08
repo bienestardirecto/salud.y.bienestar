@@ -244,3 +244,23 @@
 
 /* Naturaleza y Ciencia: entrada suave */
 (function(){var s=document.querySelector(".nc");if(!s)return;if(!("IntersectionObserver" in window)){s.classList.add("is-in");return}var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){s.classList.add("is-in");io.disconnect()}},{threshold:.15});io.observe(s)})();
+
+/* Videos: flechas, contador y gestos horizontales del trackpad */
+(function(){
+  var rail=document.getElementById('tt-rail'); if(!rail) return;
+  var cards=rail.querySelectorAll('.tt-card'), cnt=document.querySelector('.tt-count'), btns=document.querySelectorAll('.tt-btn');
+  function info(){
+    var r=rail.getBoundingClientRect(), first=-1, last=-1;
+    cards.forEach(function(c,i){var b=c.getBoundingClientRect(),vis=Math.min(b.right,r.right)-Math.max(b.left,r.left);if(vis>b.width*.6){if(first<0)first=i;last=i;}});
+    if(first<0){first=last=0;}
+    if(cnt) cnt.textContent=(first===last?(first+1):(first+1)+'–'+(last+1))+' de '+cards.length+' videos';
+    btns[0].disabled=rail.scrollLeft<4; btns[1].disabled=rail.scrollLeft+rail.clientWidth>=rail.scrollWidth-4;
+  }
+  btns.forEach(function(b){b.addEventListener('click',function(){
+    var w=cards[0].getBoundingClientRect().width+18, n=Math.max(1,Math.floor(rail.clientWidth/w));
+    rail.scrollBy({left:w*n*Number(b.getAttribute('data-dir')),behavior:'smooth'});
+  });});
+  var t=false; rail.addEventListener('scroll',function(){if(t)return;t=true;requestAnimationFrame(function(){t=false;info();});},{passive:true});
+  rail.addEventListener('wheel',function(e){if(Math.abs(e.deltaX)>Math.abs(e.deltaY))e.stopPropagation();},{passive:true});
+  window.addEventListener('resize',info); info();
+})();
