@@ -470,3 +470,16 @@ html.motion .hero h1 .ln{opacity:0}
   .card-media img,.card-media .ph{transform:none!important;will-change:auto}
   .zoom-cue{display:none}
 }
+
+/* Celular: tarjeta de producto con alto fijo y foto contenida (corrige tarjetas gigantes en Safari de iPhone) */
+@media (max-width:700px){
+  .rail .card{grid-template-columns:118px minmax(0,1fr);align-items:stretch;height:auto}
+  .rail .card-media{height:auto;min-height:168px;max-height:240px;align-self:stretch;overflow:hidden;isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black)}
+  .rail .card-media img,.rail .card-media img.fit-contain,.rail .card-media img.fit-photo{
+    position:absolute;top:10px;left:8px;right:auto;bottom:auto;width:calc(100% - 16px);height:calc(100% - 20px);
+    max-width:none;object-fit:contain;translate:none;transform:none!important;filter:drop-shadow(0 10px 10px rgba(60,42,15,.28))}
+  .rail .card-media img.fit-photo{border-radius:6px;filter:none}
+  .rail .card-media img.fit-cover{top:0;left:0;width:100%;height:100%;object-fit:cover;filter:none}
+  .rail .card-media .ph{top:0;left:0;width:100%;height:100%}
+  .rail .card-body{min-width:0}
+}
