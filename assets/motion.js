@@ -287,10 +287,8 @@
       media.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') enter(); });
       media.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') leave(); });
     }
-    media.addEventListener('click', function () {
-      if (fine && inside) { enter(); return; }
-      enter(); setTimeout(leave, 1700);
-    });
+    // En pantallas táctiles no hay acercamiento al tocar: agrandaba la foto fuera de la tarjeta.
+    if (fine) media.addEventListener('click', function () { if (inside) enter(); });
   });
 
   // indicador deslizante de los filtros + reentrada de tarjetas

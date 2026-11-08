@@ -462,3 +462,11 @@ html.motion .hero h1 .ln{opacity:0}
 .tt-count{margin-right:auto;font-size:12px;text-transform:uppercase;color:var(--fg-70)}
 .tt-rail::after{content:"";flex:0 0 1px}
 @media (max-width:900px){.tt-ctrl{margin-top:0}.tt-btn{width:44px;height:44px}}
+
+/* Celulares y pantallas táctiles: foto fija dentro de la tarjeta, sin efecto 3D */
+@media (max-width:900px),(pointer:coarse){
+  .card{transform-style:flat}
+  .card-media{perspective:none;cursor:default}
+  .card-media img,.card-media .ph{transform:none!important;will-change:auto}
+  .zoom-cue{display:none}
+}
