@@ -60,7 +60,7 @@
   function syncZone() { zoneST.forEach(function (z) { if (z.st.isActive) z.fn(); }); }
   function zones() {
     zt({ trigger: '.hero', start: 'top top', end: 'bottom 45%' }, function () { setZone('hero', true, $('.hero-slot')); });
-    zt({ trigger: '.how', start: 'top 55%', end: 'bottom 45%' }, function () { setZone('orbit', wide.matches); });
+    zt({ trigger: '.find', start: 'top 55%', endTrigger: '.how', end: 'bottom 45%' }, function () { setZone('orbit', false); });
     $$('.cat').forEach(function (cat) {
       var i = cat.getAttribute('data-i');
       var intro = $('.cat-intro', cat), catalog = $('.catalog', cat), slot = $('.cat-c', intro);
@@ -104,7 +104,8 @@
   /* ---------------- Desplazamiento suave (escritorio) ---------------- */
   var lenis = null;
   if (fine && window.Lenis) {
-    lenis = new window.Lenis({ duration: 1.05, easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); }, anchors: true, smoothWheel: true });
+    lenis = new window.Lenis({ duration: 1.05, easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); }, anchors: { offset: -72 }, smoothWheel: true });
+    window.__lenis = lenis;
     lenis.on('scroll', ST.update);
     gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
     gsap.ticker.lagSmoothing(0);
@@ -115,26 +116,12 @@
   /* ---------------- Escritorio vs. celular ---------------- */
   var mm = gsap.matchMedia();
   mm.add('(min-width: 901px)', function () {
-    /* Cómo comprar: sección fijada, el contenido cambia con el scroll */
-    var how = $('.how');
-    var li = $$('.steps li', how), bars = $$('.step-bar b', how);
-    gsap.set(li.slice(1), { opacity: 0, y: 40 });
-    var tl = gsap.timeline({ scrollTrigger: { trigger: how, start: 'top top', end: '+=210%', pin: true, scrub: 0.6, anticipatePin: 1 } });
-    tl.to(bars[0], { scaleX: 1, duration: 1, ease: 'none' })
-      .to(li[0], { opacity: 0, y: -40, duration: 0.35 })
-      .to(li[1], { opacity: 1, y: 0, duration: 0.35 }, '<0.12')
-      .to(bars[1], { scaleX: 1, duration: 1, ease: 'none' })
-      .to(li[1], { opacity: 0, y: -40, duration: 0.35 })
-      .to(li[2], { opacity: 1, y: 0, duration: 0.35 }, '<0.12')
-      .to(bars[2], { scaleX: 1, duration: 1, ease: 'none' });
     /* Presentaciones de categoría: columnas a distintas profundidades */
     $$('.cat-intro').forEach(function (intro) {
       gsap.fromTo($('.cat-l', intro), { y: 70 }, { y: -50, ease: 'none', scrollTrigger: { trigger: intro, start: 'top bottom', end: 'bottom top', scrub: true } });
       gsap.fromTo($('.cat-r', intro), { y: 120 }, { y: -30, ease: 'none', scrollTrigger: { trigger: intro, start: 'top bottom', end: 'bottom top', scrub: true } });
     });
-    return function () { gsap.set(li, { clearProps: 'all' }); gsap.set(bars, { clearProps: 'all' }); };
   });
-  mm.add('(max-width: 900px)', function () { $('.how').classList.add('no-pin'); return function () { $('.how').classList.remove('no-pin'); }; });
 
   /* ---------------- Hero: secuencia de entrada ---------------- */
   var lines = $$('.hero h1 .ln');
@@ -231,7 +218,9 @@
       var cards = $$('.card:not([hidden])', rail);
       var inView = cards.filter(function (c) { return c.getBoundingClientRect().left < W; });
       // las que quedan fuera de pantalla a la derecha se muestran ya, sin animación
-      gsap.set(pre.filter(function (c) { return inView.indexOf(c) < 0; }), { clearProps: 'opacity' });
+      var rest = pre.filter(function (c) { return inView.indexOf(c) < 0; });
+      if (rest.length) gsap.set(rest, { clearProps: 'opacity' });
+      if (!inView.length) return;
       gsap.fromTo(inView, { opacity: 0, x: 80, rotateY: -14 }, { opacity: 1, x: 0, rotateY: 0, duration: 1.1, ease: 'expo.out', stagger: 0.07, clearProps: 'transform,opacity' });
     } });
   });

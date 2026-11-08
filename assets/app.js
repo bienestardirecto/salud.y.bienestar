@@ -126,16 +126,21 @@
      (muestra la portada del video como vista previa y se reproduce ahí mismo al tocar play).
      Si los reproductores externos están bloqueados (vista previa de claude.ai), el enlace abre TikTok. */
   function ttLoad(face, autoplay) {
-    if (!face.isConnected) return;
+    var box = face.parentNode;
+    if (!box || box.querySelector('.tt-frame')) {
+      var old = box && box.querySelector('.tt-frame');
+      if (old && autoplay && old.src.indexOf('autoplay=1') < 0) old.src = old.src.replace('autoplay=0', 'autoplay=1');
+      return;
+    }
     var id = face.getAttribute('data-tt');
     var f = document.createElement('iframe');
     f.className = 'tt-frame';
     f.src = 'https://www.tiktok.com/player/v1/' + id + '?music_info=1&description=1&rel=0&autoplay=' + (autoplay ? 1 : 0);
     f.title = face.getAttribute('aria-label');
-    f.loading = 'lazy';
     f.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
     f.setAttribute('allowfullscreen', '');
-    face.replaceWith(f);
+    f.addEventListener('load', function () { setTimeout(function () { f.classList.add('ready'); face.setAttribute('tabindex', '-1'); }, 700); });
+    box.appendChild(f);
   }
   if (window.__TT_EMBED !== false) {
     var faces = document.querySelectorAll('.tt-face');
@@ -151,6 +156,63 @@
       e.preventDefault(); ttLoad(face, true);
     });
   }
+
+  /* Medición: cada clic a WhatsApp se registra con su origen (portada, menú, flotante, producto,
+     categoría, video, cierre). Funciona con GA4 y/o Microsoft Clarity si están configurados. */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-origen]');
+    if (!a) return;
+    var d = { origen: a.getAttribute('data-origen'), producto: a.getAttribute('data-producto') || '' };
+    try {
+      (window.dataLayer = window.dataLayer || []).push({ event: 'whatsapp_click', origen: d.origen, producto: d.producto });
+      if (typeof window.gtag === 'function') window.gtag('event', 'whatsapp_click', { origen: d.origen, producto: d.producto, transport_type: 'beacon' });
+      if (typeof window.clarity === 'function') { window.clarity('event', 'whatsapp_' + d.origen); window.clarity('set', 'producto', d.producto); }
+    } catch (err) { /* la medición nunca debe impedir abrir WhatsApp */ }
+  }, true);
+
+  /* Celular: lista vertical con los primeros 6 productos y "Ver los N" */
+  var mobile = window.matchMedia('(max-width: 700px)');
+  var SHOW = 6;
+  function collapse(rail) {
+    var btn = document.querySelector('.more-btn[data-rail="' + rail.id + '"]');
+    var vis = Array.prototype.filter.call(rail.querySelectorAll('.card'), function (c) { return !c.hidden; });
+    var on = mobile.matches && !rail.hasAttribute('data-open') && vis.length > SHOW + 1;
+    Array.prototype.forEach.call(rail.querySelectorAll('.card'), function (c) { c.classList.remove('more-hidden'); });
+    if (on) vis.slice(SHOW).forEach(function (c) { c.classList.add('more-hidden'); });
+    if (btn) { btn.hidden = !on; btn.textContent = 'Ver los ' + vis.length + ' productos'; }
+  }
+  document.querySelectorAll('.rail').forEach(collapse);
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.more-btn');
+    if (!b) return;
+    var rail = document.getElementById(b.getAttribute('data-rail'));
+    rail.setAttribute('data-open', '');
+    collapse(rail);
+    var first = rail.querySelectorAll('.card:not([hidden])')[SHOW];
+    if (first) first.focus && first.querySelector('a,select') && first.querySelector('a,select').focus({ preventScroll: true });
+  });
+  (mobile.addEventListener ? mobile.addEventListener('change', function () { document.querySelectorAll('.rail').forEach(collapse); }) : null);
+  document.addEventListener('filtered', function (e) {
+    var rail = document.getElementById(e.target.getAttribute('data-chips'));
+    if (rail) collapse(rail);
+  });
+
+  /* Atajos "¿Qué buscás?": filtran la categoría y llevan al catálogo */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-find]');
+    if (!a) return;
+    var rail = document.getElementById(a.getAttribute('data-find'));
+    if (!rail) return;
+    e.preventDefault();
+    var g = a.getAttribute('data-g');
+    var box = document.querySelector('[data-chips="' + rail.id + '"]');
+    var chip = box && box.querySelector('.chip[data-g="' + (window.CSS && CSS.escape ? CSS.escape(g) : g) + '"]');
+    if (chip && chip.getAttribute('aria-pressed') !== 'true') chip.click();
+    var target = rail.closest('.catalog');
+    if (window.__lenis) window.__lenis.scrollTo(target, { offset: -72 });
+    else { var y = target.getBoundingClientRect().top + window.pageYOffset - 72; window.scrollTo({ top: y, behavior: 'smooth' }); }
+    if (history.replaceState) history.replaceState(null, '', '#' + target.id);
+  });
 
   /* Filtros por grupo */
   document.querySelectorAll('[data-chips]').forEach(function (box) {
