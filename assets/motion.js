@@ -21,9 +21,12 @@
   var scene = null, zone = { state: 'hero', on: true, el: $('.hero-slot') }, lastP = 0;
   function applyZone() {
     if (!scene) return;
+    // En celulares los objetos flotantes solo acompañan a la portada: fuera de ella se ocultan y
+    // se detiene su animación (evita que tapen textos y alivia el scroll).
+    var on = zone.on && (wide.matches || zone.state === 'hero');
     scene.setState(zone.state, zone.el);
-    scene.setActive(zone.on);
-    canvas.classList.toggle('on', zone.on);
+    scene.setActive(on);
+    canvas.classList.toggle('on', on);
   }
   function setZone(state, on, el) { zone = { state: state, on: on, el: el || null }; applyZone(); }
   function loadScene() {
@@ -86,7 +89,8 @@
         : 'inset(100% 0 0 0)';
     });
   }
-  if (layers.length && intros.length) {
+  // Solo en pantallas anchas: en celulares cada presentación pinta su propio fondo (sin recortes por scroll).
+  if (layers.length && intros.length && wide.matches) {
     h.classList.add('dark-layer');
     ST.create({ start: 0, end: 'max', onUpdate: paintDark, onRefresh: paintDark });
     window.addEventListener('resize', paintDark);

@@ -47,9 +47,9 @@ ul,ol{list-style:none}
 
 /* ---------- Escena 3D y luz ambiental (detrás de todo) ---------- */
 .stage{position:fixed;inset:0;z-index:0;pointer-events:none}
-.stage #scene{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 1.2s var(--ease)}
+.stage #scene{position:absolute;inset:0;overflow:hidden;opacity:0;visibility:hidden;transition:opacity 1.2s var(--ease),visibility 0s 1.2s}
 .objs img{position:absolute;left:0;top:0;max-width:none;will-change:transform,opacity;opacity:0;user-select:none;pointer-events:none}
-.stage #scene.on{opacity:1}
+.stage #scene.on{opacity:1;visibility:visible;transition:opacity 1.2s var(--ease),visibility 0s}
 .glow{position:absolute;width:80vmax;height:80vmax;left:50%;top:50%;margin:-40vmax 0 0 -40vmax;border-radius:50%;opacity:0;
   transition:opacity 1.4s var(--ease);will-change:opacity,transform}
 .glow.on{opacity:1}
@@ -446,3 +446,13 @@ html.motion .hero h1 .ln{opacity:0}
 .chips span{border:1px solid var(--line);border-radius:var(--r-ghost);padding:7px 12px;font-size:13px;font-weight:400;background:rgba(255,255,255,.35)}
 .ic small{font-size:12px;font-weight:400;color:var(--fg-50);margin-top:auto}
 @media(max-width:900px){.info-grid{grid-template-columns:1fr}}
+
+/* Rendimiento en celulares: sin desenfoque (blur) detrás del menú y paneles */
+@media (max-width:900px),(pointer:coarse){
+  .nav.solid{background:rgba(184,156,106,.97);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .info{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(199,171,122,.92)}
+}
+@media (max-width:900px){
+  /* capas fijas gigantes que en celular casi no se ven pero cuestan mucho al hacer scroll */
+  .stage .glow,.stage .stage-bg{display:none}
+}

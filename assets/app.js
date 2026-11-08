@@ -144,7 +144,10 @@
   }
   if (window.__TT_EMBED !== false) {
     var faces = document.querySelectorAll('.tt-face');
-    if ('IntersectionObserver' in window) {
+    // En computadoras se precargan como vista previa; en celulares se cargan recién al tocar play
+    // (precargar varios reproductores a la vez traba el scroll y TikTok muestra "Watch on TikTok").
+    var ttMobile = !window.matchMedia('(min-width: 900px) and (pointer: fine)').matches;
+    if (!ttMobile && 'IntersectionObserver' in window) {
       var tio = new IntersectionObserver(function (es) {
         es.forEach(function (e) { if (e.isIntersecting) { tio.unobserve(e.target); ttLoad(e.target, false); } });
       }, { rootMargin: '300px 300px' });
@@ -153,7 +156,11 @@
     document.addEventListener('click', function (e) {
       var face = e.target.closest('.tt-face');
       if (!face) return;
-      e.preventDefault(); ttLoad(face, true);
+      e.preventDefault();
+      if (ttMobile) document.querySelectorAll('.tt-box .tt-frame').forEach(function (fr) {
+        if (fr.parentNode !== face.parentNode) { var pf = fr.parentNode.querySelector('.tt-face'); if (pf) pf.removeAttribute('tabindex'); fr.remove(); }
+      });
+      ttLoad(face, true);
     });
   }
 
