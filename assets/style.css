@@ -409,3 +409,26 @@ html.motion .hero h1 .ln{opacity:0}
   .badge{top:8px;left:8px;font-size:9px;padding:4px 8px}
   .zoom-cue{display:none}
 }
+
+/* Bloque Naturaleza y Ciencia */.nc{padding:clamp(48px,6vw,84px) var(--pad);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.nc-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(18px,4vw,60px);align-items:end;margin-bottom:clamp(28px,4vw,48px)}
+.nc .label{font-size:12px;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+.nc h2{margin:0;font-size:clamp(28px,3.6vw,52px);line-height:.95;font-weight:600;text-transform:uppercase;letter-spacing:-.01em}
+.nc-lead{margin:0;font-size:clamp(16px,1.35vw,20px);line-height:1.4;color:var(--fg-70);max-width:46ch}
+.nc-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.nc-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.nc-ico{width:44px;height:44px;border-radius:50%;border:1px solid var(--accent);display:grid;place-items:center;color:var(--accent)}
+.nc-ico svg{width:24px;height:24px}
+.nc-item h3{margin:4px 0 0;font-size:16px;line-height:1.15;font-weight:600}
+.nc-item p{margin:0;font-size:14px;line-height:1.4;color:var(--fg-70)}
+.nc-scope{margin-top:auto!important;padding-top:8px;border-top:1px solid var(--line);font-size:11px!important;text-transform:uppercase;color:var(--fg-50)!important}
+.nc-note{margin:18px 0 0;font-size:12px;color:var(--fg-50)}
+.nc-note a{color:inherit}
+/* animación suave */
+.nc [data-in]{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.nc.is-in [data-in]{opacity:1;transform:none}
+.nc.is-in .nc-item:nth-child(2){transition-delay:.08s}.nc.is-in .nc-item:nth-child(3){transition-delay:.16s}.nc.is-in .nc-item:nth-child(4){transition-delay:.24s}
+@media (prefers-reduced-motion:reduce){.nc [data-in]{opacity:1;transform:none;transition:none}}
+@media (max-width:900px){.nc-list{grid-template-columns:repeat(2,minmax(0,1fr))}.nc-head{grid-template-columns:1fr;align-items:start}}
+@media (max-width:520px){.nc-list{grid-template-columns:1fr}.nc-item{flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:6px 14px}
+ .nc-ico{flex:0 0 40px;width:40px;height:40px}.nc-txt{flex:1 1 0;min-width:0}.nc-scope{flex-basis:100%}}

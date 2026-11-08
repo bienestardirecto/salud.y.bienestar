@@ -234,3 +234,6 @@
     });
   });
 })();
+
+/* Naturaleza y Ciencia: entrada suave */
+(function(){var s=document.querySelector(".nc");if(!s)return;if(!("IntersectionObserver" in window)){s.classList.add("is-in");return}var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){s.classList.add("is-in");io.disconnect()}},{threshold:.15});io.observe(s)})();

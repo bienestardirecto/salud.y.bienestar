@@ -60,7 +60,7 @@
   function syncZone() { zoneST.forEach(function (z) { if (z.st.isActive) z.fn(); }); }
   function zones() {
     zt({ trigger: '.hero', start: 'top top', end: 'bottom 45%' }, function () { setZone('hero', true, $('.hero-slot')); });
-    zt({ trigger: '.find', start: 'top 55%', endTrigger: '.how', end: 'bottom 45%' }, function () { setZone('orbit', false); });
+    zt({ trigger: '.nc', start: 'top 55%', endTrigger: '.how', end: 'bottom 45%' }, function () { setZone('orbit', false); });
     $$('.cat').forEach(function (cat) {
       var i = cat.getAttribute('data-i');
       var intro = $('.cat-intro', cat), catalog = $('.catalog', cat), slot = $('.cat-c', intro);
