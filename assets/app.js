@@ -264,3 +264,87 @@
   rail.addEventListener('wheel',function(e){if(Math.abs(e.deltaX)>Math.abs(e.deltaY))e.stopPropagation();},{passive:true});
   window.addEventListener('resize',info); info();
 })();
+
+/* Pedido con varios productos: se agregan desde cada tarjeta y se envía un solo mensaje por WhatsApp.
+   Se recuerda en este navegador (si el almacenamiento está disponible). */
+(function () {
+  var cart = document.getElementById('cart'); if (!cart) return;
+  var WA = document.documentElement.getAttribute('data-wa') || '';
+  var KEY = 'bd-pedido-v1', items = [];
+  try { items = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { items = []; }
+  var list = cart.querySelector('.cart-list'), panel = document.getElementById('cart-panel');
+  var tog = cart.querySelector('[data-cart-toggle]'), send = cart.querySelector('.cart-send');
+  function num(s) { var n = parseFloat(String(s).replace(/[^0-9,]/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; }
+  function money(n) { return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {} }
+  function key(id, tono) { return id + '|' + (tono || ''); }
+  function find(k) { for (var i = 0; i < items.length; i++) if (items[i].k === k) return i; return -1; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function message() {
+    var lines = items.map(function (it) {
+      return '• ' + it.q + ' x ' + it.n + (it.t ? ', tono ' + it.t : '') + (it.c ? ' (cód. ' + it.c + ')' : '') + ' — ' + money(it.p) + (it.q > 1 ? ' c/u' : '');
+    });
+    var tot = items.reduce(function (a, it) { return a + it.p * it.q; }, 0);
+    return 'Hola, quiero hacer este pedido:\n' + lines.join('\n') + '\n\nTotal según precios publicados: ' + money(tot) +
+      '\n¿Me confirmás disponibilidad, envío y forma de pago?';
+  }
+  function syncCards() {
+    document.querySelectorAll('.card[data-item]').forEach(function (card) {
+      var id = card.id.replace(/^p-/, ''), on = items.some(function (it) { return it.id === id; });
+      card.classList.toggle('in-cart', on);
+      var b = card.querySelector('[data-add]'); if (!b) return;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.querySelector('.add-i').textContent = on ? '✓' : '+';
+      b.querySelector('.add-l').textContent = on ? 'En tu pedido · quitar' : 'Agregar al pedido';
+    });
+  }
+  function render() {
+    var count = items.reduce(function (a, it) { return a + it.q; }, 0);
+    var tot = items.reduce(function (a, it) { return a + it.p * it.q; }, 0);
+    cart.hidden = !items.length;
+    document.documentElement.classList.toggle('has-cart', !!items.length);
+    if (!items.length) { panel.hidden = true; tog.setAttribute('aria-expanded', 'false'); }
+    cart.querySelector('.cart-n').textContent = count;
+    cart.querySelector('.cart-tot').textContent = money(tot);
+    cart.querySelector('.cart-t b').textContent = count === 1 ? '1 producto' : count + ' productos';
+    list.innerHTML = items.map(function (it, i) {
+      return '<li><div class="ci-t"><b>' + esc(it.n) + '</b>' + (it.t ? '<span>Tono: ' + esc(it.t) + '</span>' : '') +
+        '<span>' + money(it.p) + (it.c ? ' · Cód. ' + esc(it.c) : '') + '</span></div>' +
+        '<div class="ci-q"><button type="button" data-q="-1" data-i="' + i + '" aria-label="Quitar uno">−</button><span>' + it.q + '</span>' +
+        '<button type="button" data-q="1" data-i="' + i + '" aria-label="Agregar uno">+</button></div></li>';
+    }).join('');
+    send.href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(message());
+    send.setAttribute('data-producto', items.map(function (it) { return it.id; }).join(','));
+    syncCards(); save();
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-add]');
+    if (b) {
+      var card = b.closest('.card'), id = card.id.replace(/^p-/, '');
+      var existing = items.filter(function (it) { return it.id === id; });
+      if (existing.length) { items = items.filter(function (it) { return it.id !== id; }); render(); return; }
+      var sel = card.querySelector('select[data-tonos]'), tono = '', cod = card.getAttribute('data-cod');
+      if (sel) {
+        var o = sel.options[sel.selectedIndex];
+        if (!o || !o.value) { var pk = card.querySelector('.tono-pick'); if (pk) pk.textContent = 'Elegí un tono para agregarlo'; sel.focus(); return; }
+        tono = o.value; cod = o.getAttribute('data-c') || cod;
+      }
+      items.push({ k: key(id, tono), id: id, n: card.getAttribute('data-item'), t: tono, c: cod, p: num(card.getAttribute('data-precio')), q: 1 });
+      render();
+      cart.classList.remove('bump'); void cart.offsetWidth; cart.classList.add('bump');
+      return;
+    }
+    var q = e.target.closest('[data-q]');
+    if (q && cart.contains(q)) {
+      var i = Number(q.getAttribute('data-i')); items[i].q += Number(q.getAttribute('data-q'));
+      if (items[i].q < 1) items.splice(i, 1);
+      render(); return;
+    }
+    if (e.target.closest('[data-cart-toggle]')) {
+      panel.hidden = !panel.hidden; tog.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true'); return;
+    }
+    if (e.target.closest('[data-cart-close]')) { panel.hidden = true; tog.setAttribute('aria-expanded', 'false'); return; }
+    if (e.target.closest('[data-cart-clear]')) { items = []; render(); }
+  });
+  render();
+})();
